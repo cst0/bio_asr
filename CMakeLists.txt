@@ -8,8 +8,16 @@ project(bio_asr)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  kaldi
-  roscpp
+  rospy
+  message_generation
+  audio_common_msgs
+  catkin_virtualenv
+)
+
+catkin_generate_virtualenv(
+    PYTHON_INTERPRETER python3.8
+    USE_SYSTEM_PACKAGES FALSE
+    ISOLATE_REQUIREMENTS FALSE
 )
 
 ## System dependencies are found with CMake's conventions
@@ -52,12 +60,11 @@ find_package(catkin REQUIRED COMPONENTS
 #   Message2.msg
 # )
 
-## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
-#   Service2.srv
-# )
+# Generate services in the 'srv' folder
+add_service_files(
+  FILES
+  IdentifySpeaker.srv
+)
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -158,10 +165,12 @@ include_directories(
 
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
-# catkin_install_python(PROGRAMS
-#   scripts/my_python_script
-#   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
+catkin_install_python(PROGRAMS
+  src/samples/asr_demo.py
+  src/samples/vad_demo.py
+  src/samples/speaker_identify_demo.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
 ## Mark executables for installation
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_executables.html
@@ -185,11 +194,9 @@ include_directories(
 # )
 
 ## Mark other files for installation (e.g. launch and bag files, etc.)
-# install(FILES
-#   # myfile1
-#   # myfile2
-#   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-# )
+install(FILES requirements.txt
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
 
 #############
 ## Testing ##
