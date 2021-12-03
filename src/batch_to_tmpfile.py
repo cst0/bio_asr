@@ -13,7 +13,7 @@ class BatchToTempfile:
     def __init__(self, delete_timeout=60):
         self.delete_timeout = delete_timeout
         self.pub_file_use = rospy.Publisher(
-            "audio/audio_file_updates", NotifyFileUsage, queue_size=1
+            "audio_file_updates", NotifyFileUsage, queue_size=1
         )
 
         rp = rospkg.RosPack()
@@ -29,10 +29,10 @@ class BatchToTempfile:
         self.file_user = []
 
         self.sub_audio_batch = rospy.Subscriber(
-            "audio/audio_batched", AudioBatch, self.handle_audio_batch, queue_size=10
+            "audio_batched", AudioBatch, self.handle_audio_batch, queue_size=10
         )
         self.sub_file_use = rospy.Subscriber(
-            "audio/audio_file_locks",
+            "audio_file_locks",
             NotifyFileUsage,
             self.handle_file_usage,
             queue_size=10,
