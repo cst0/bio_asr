@@ -2,48 +2,48 @@
 
 import rospy
 import tempfile
-from audio_common_msgs.msg import AudioData, AudioInfo
 from std_srvs.srv import Empty, EmptyResponse
+from bio_asr.srv import SpeakerRecognitionOnFile, SpeakerRecognitionOnFileRequest, SpeakerRecognitionOnFileResponse
 
 import torchaudio
 from speechbrain.pretrained import EncoderClassifier
 from speechbrain.pretrained import SpeakerRecognition
 
 
-
 class SpeakerIdentifier(object):
     def __init__(self):
-        self.sub_audio = rospy.Subscriber("/audio", AudioData, self.append_audio)
-        self.sub_audio_info = rospy.Subscriber(
-            "/audio_info", AudioInfo, self.receive_audio_info
-        )
         self.srv_analyze_utterance = rospy.Service(
-            "analyze_utterance", Empty, self.analyze_utterance
+            "run_recog_on_file", SpeakerRecognitionOnFile, self.analyze_utterance
         )
 
         self.current_utterance = []
         self.audio_info = None
 
-        self.classifier = EncoderClassifier.from_hparams(source="speechbrain/spkrec-ecapa-voxceleb")
+        self.classifier = EncoderClassifier.from_hparams(
+            source="speechbrain/spkrec-ecapa-voxceleb"
+        )
         self.verification = SpeakerRecognition.from_hparams(
             source="speechbrain/spkrec-ecapa-voxceleb",
             savedir="pretrained_models/spkrec-ecapa-voxceleb",
         )
 
-    def analyze_utterance(self, req):
-        del req
-
-        assert self.audio_info is not None
-        tmpfile = tempfile.TemporaryFile(suffix='.'+str(self.audio_info.coding_format))
-        tmpfile.writelines(self.current_utterance)
-        self.current_utterance = []
-
+    def analyze_utterance(self, req:SpeakerRecognitionOnFileRequest):
+        assert req.file is type(str)
         score, prediction = self.verification.verify_files(
-            tmpfile,
-            "cst_test2.wav",
+            req.file,
+            "/home/cst/ws_releases/src/bio_asr/data/cst_test2.wav"
         )
 
-        return EmptyResponse()
+        resp = SpeakerRecognitionOnFileResponse()
+        rospy.logdebug('running speaker verification, evaluated to '+str(prediction))
+        if prediction:
+            resp.agent = 'chris'
+            resp.found_match = True
+        else:
+            resp.agent = ''
+            resp.found_match = False
+
+        return resp
 
     def append_audio(self, msg):
         self.current_utterance.append(msg)
@@ -53,7 +53,9 @@ class SpeakerIdentifier(object):
 
 
 def main():
-    pass
+    rospy.init_node("speaker_identifier", anonymous=False)
+    si = SpeakerIdentifier()
+    rospy.spin()
 
 
 if __name__ == "__main__":
