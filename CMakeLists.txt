@@ -58,14 +58,20 @@ catkin_generate_virtualenv(
 add_message_files(
   FILES
   AudioBatch.msg
+  AudioBatchMetadata.msg
+  AudioFileNotification.msg
   AudioStamped.msg
-  NotifyFileUsage.msg
+  AudioFileNotification.msg
+  Utterance.msg
+  VoiceActivityMarker.msg
 )
 
 # Generate services in the 'srv' folder
 add_service_files(
   FILES
-  IdentifySpeaker.srv
+  AsrOnFile.srv
+  SpeakerRecognitionOnFile.srv
+  VadOnFile.srv
 )
 
 ## Generate actions in the 'action' folder

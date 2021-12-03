@@ -1,0 +1,6 @@
+AudioBatchMetadata metadata
+string file
+string reference_dir
+---
+bool found_match
+string agent

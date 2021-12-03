@@ -1,0 +1,4 @@
+AudioBatchMetadata metadata
+string file_path
+---
+VoiceActivityMarker marks
