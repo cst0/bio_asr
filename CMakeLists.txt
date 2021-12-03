@@ -10,6 +10,7 @@ project(bio_asr)
 find_package(catkin REQUIRED COMPONENTS
   rospy
   message_generation
+  std_msgs
   audio_common_msgs
   catkin_virtualenv
 )
@@ -54,11 +55,12 @@ catkin_generate_virtualenv(
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
-#   Message2.msg
-# )
+add_message_files(
+  FILES
+  AudioBatch.msg
+  AudioStamped.msg
+  NotifyFileUsage.msg
+)
 
 # Generate services in the 'srv' folder
 add_service_files(
@@ -74,10 +76,11 @@ add_service_files(
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs  # Or other packages containing msgs
-# )
+generate_messages(
+  DEPENDENCIES
+  std_msgs
+  audio_common_msgs
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -111,7 +114,7 @@ add_service_files(
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES bio_asr
-#  CATKIN_DEPENDS kaldi roscpp
+  CATKIN_DEPENDS message_runtime
 #  DEPENDS system_lib
 )
 
@@ -169,6 +172,8 @@ catkin_install_python(PROGRAMS
   src/samples/asr_demo.py
   src/samples/vad_demo.py
   src/samples/speaker_identify_demo.py
+  src/audio_batcher.py
+  src/batch_to_tmpfile.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

@@ -9,13 +9,16 @@
   <author email="chris@cthierauf.com">cst0 (Chris Thierauf)</author>
 
 
+  <depend>message_runtime</depend>
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>catkin_virtualenv</build_depend>
   <build_depend>message_generation</build_depend>
   <build_depend>rospy</build_depend>
+  <build_depend>std_msgs</build_depend>
   <build_depend>audio_common_msgs</build_depend>
   <build_export_depend>rospy</build_export_depend>
   <exec_depend>rospy</exec_depend>
+  <exec_depend>ffmpeg</exec_depend>
   <exec_depend>audio_common_msgs</exec_depend>
 
   <!--
@@ -27,6 +30,7 @@
   -->
   <!--depend>speechbrain</depend>
   <depend>torchaudio</depend>
+  <depend>pydub</depend>
   <depend>transformers</depend-->
 
   <!-- The export tag contains other, unspecified, tags -->
