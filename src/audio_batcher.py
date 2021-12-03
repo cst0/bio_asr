@@ -42,9 +42,9 @@ class AudioBatcher(object):
             assert self.batch_data.data is not None
 
             # We've collected enough data here. So, set up for publishing and send that info.
-            self.batch_data.overlap = self.overlap
-            self.batch_data.length = now - self.batch_start
-            self.batch_data.header.stamp = self.batch_start
+            self.batch_data.metadata.overlap = self.overlap
+            self.batch_data.metadata.length = now - self.batch_start
+            self.batch_data.metadata.start = self.batch_start
 
             self.pub_audio_batch.publish(self.batch_data)
 
