@@ -180,6 +180,8 @@ catkin_install_python(PROGRAMS
   src/samples/speaker_identify_demo.py
   src/audio_batcher.py
   src/batch_to_tmpfile.py
+  src/bio_asr_core.py
+  src/speaker_identifier.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

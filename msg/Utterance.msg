@@ -1,5 +1,7 @@
 AudioBatchMetadata metadata
 
-time start
-string[] speech_segments
+string utt
 VoiceActivityMarker voice_markers
+
+bool known_agent
+string agent
