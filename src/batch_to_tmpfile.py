@@ -49,6 +49,11 @@ class BatchToTempfile:
         self.files_strs.append(tmp.name)
         self.file_times.append(rospy.Time.now())
 
+        nfu = NotifyFileUsage()
+        nfu.path = tmp.name
+        nfu.action = nfu.ACTION_AVAILABLE
+        self.pub_file_use.publish(nfu)
+
     def handle_file_usage(self, fileuse:NotifyFileUsage):
         if fileuse.path in self.files_list:
             index = self.files_strs.index(fileuse.path)
