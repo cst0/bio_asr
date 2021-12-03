@@ -17,10 +17,10 @@ class AudioBatcher(object):
         self.overlap = rospy.Duration(overlap)
 
         self.sub_audio = rospy.Subscriber(
-            "audio/audio", AudioData, callback=self.handle_audio_msg, queue_size=200
+            "audio", AudioData, callback=self.handle_audio_msg, queue_size=200
         )
         self.sub_audio_info = rospy.Subscriber(
-            "audio/audio_info",
+            "audio_info",
             AudioInfo,
             callback=self.handle_audio_info_msg,
             queue_size=1,
@@ -31,7 +31,7 @@ class AudioBatcher(object):
         self.batch_start = rospy.Time.now()
 
         self.pub_audio_batch = rospy.Publisher(
-            "audio/audio_batched", AudioBatch, queue_size=1
+            "audio_batched", AudioBatch, queue_size=1
         )
         self.timer = rospy.Timer(rospy.Duration(1 / hz), self.run)
 
