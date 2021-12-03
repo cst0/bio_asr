@@ -178,6 +178,7 @@ catkin_install_python(PROGRAMS
   src/samples/asr_demo.py
   src/samples/vad_demo.py
   src/samples/speaker_identify_demo.py
+  src/asr_provider.py
   src/audio_batcher.py
   src/batch_to_tmpfile.py
   src/bio_asr_core.py
