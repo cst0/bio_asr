@@ -4,4 +4,4 @@ uint8 ACTION_RELEASE=2
 
 uint8 action
 string path
-string node_pid
+uint16 node_pid
