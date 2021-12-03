@@ -28,10 +28,10 @@ class SpeakerIdentifier(object):
         )
 
     def analyze_utterance(self, req:SpeakerRecognitionOnFileRequest):
-        assert req.file is type(str)
+        assert type(req.file) is str
         score, prediction = self.verification.verify_files(
             req.file,
-            "/home/cst/ws_releases/src/bio_asr/data/cst_test2.wav"
+            "/home/cst/ws_releases/src/bio_asr/data/afterapplepicking.mp3"
         )
 
         resp = SpeakerRecognitionOnFileResponse()
