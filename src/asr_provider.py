@@ -10,6 +10,7 @@ from speechbrain.pretrained import EncoderDecoderASR
 
 class AsrProvider:
     def __init__(self):
+        rospy.loginfo('prepping')
         rp = rospkg.RosPack()
         path = rp.get_path("bio_asr")
         data_dir = os.path.join(path, "data")
@@ -24,18 +25,17 @@ class AsrProvider:
         )
 
         rospy.Service("asr_on_file", AsrOnFile, self.provide_asr_on_file)
+        rospy.loginfo('ready')
 
     def provide_asr_on_file(self, req: AsrOnFileRequest):
         assert type(req.file_path) is str
-        transcription = self.asr_model.transcribe_file(
-            req.file_path
-        )
+        transcription = self.asr_model.transcribe_file(req.file_path)
         return AsrOnFileResponse(Utterance(metadata=req.metadata, utt=transcription))
 
 
 def main():
     rospy.init_node("asr_provider", anonymous=False)
-    ap = AsrProvider
+    ap = AsrProvider()
     rospy.spin()
 
 
