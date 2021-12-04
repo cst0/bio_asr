@@ -13,9 +13,7 @@ model_dir = os.path.join(path, "pretrained_models")
 
 # transcription clutters symlinks everywhere if we aren't in this dir
 os.chdir(data_dir)
-
 filename = 'afterapplepicking'
-
 audio_file = os.path.join(data_dir, filename+'.mp3')
 
 sound = AudioSegment.from_file(audio_file)
