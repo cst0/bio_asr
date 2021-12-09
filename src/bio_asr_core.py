@@ -11,43 +11,63 @@ from bio_asr.srv import (
 )
 from bio_asr.srv import AsrOnFileRequest, AsrOnFileResponse, AsrOnFile
 from bio_asr.srv import VadOnFileRequest, VadOnFileResponse, VadOnFile
+from rospy.rostime import Duration
 
 
 class BioAsrCore:
     def __init__(self):
+        rospy.loginfo('Starting bio_asr core system.')
         self.run_vad_on_file = rospy.ServiceProxy("run_vad_on_file", VadOnFile)
         self.run_asr_on_file = rospy.ServiceProxy("run_asr_on_file", AsrOnFile)
         self.run_recog_on_file = rospy.ServiceProxy(
             "run_recog_on_file", SpeakerRecognitionOnFile
         )
 
-        self.sub_audio_file_notifications = rospy.Subscriber(
-            "audio_file_notification",
-            AudioFileNotification,
-            self.handle_audio_file_notifications,
-            queue_size=10,
-        )
+        rospy.loginfo('Waiting for VAD service to connect...')
+        self.run_vad_on_file.wait_for_service()
+        rospy.loginfo('Got it! Waiting for ASR service to connect...')
+        self.run_asr_on_file.wait_for_service()
+        rospy.loginfo('Got it! Waiting for recognition service to connect...')
+        self.run_recog_on_file.wait_for_service()
+        rospy.loginfo('All bio_asr services connected.')
 
+        audio_file_use_topic = "audio_file_updates"
         self.pub_parsed_utterances = rospy.Publisher(
                 "parsed_utterances",
                 Utterance,
                 queue_size=10
         )
+        self.pub_file_use = rospy.Publisher(
+            audio_file_use_topic, AudioFileNotification, queue_size=1
+        )
+        self.sub_file_use = rospy.Subscriber(
+            audio_file_use_topic,
+            AudioFileNotification,
+            self.handle_file_usage,
+            queue_size=10,
+        )
 
+        rospy.loginfo("All bio_asr publishers/subscribers ready to go.")
         self.audio_management_queue:List[AudioFileNotification] = []
+        self.timer = rospy.timer.Timer(Duration(1), self.run_audio_management_queue)
 
-    def handle_audio_file_notifications(self, msg:AudioFileNotification):
+    def handle_file_usage(self, msg:AudioFileNotification):
         if msg.action == msg.ACTION_AVAILABLE:
             self.audio_management_queue.append(msg)
 
     def run_audio_management_queue(self, event):
         del event
+        if len(self.audio_management_queue) == 0:
+            # nice, the queue's been cleaned out!
+            rospy.loginfo('[run_audio_management_queue]: queue empty')
+            return
+
         current_file = self.audio_management_queue[0]
-        rospy.logdebug('Calling VAD on file')
+        rospy.loginfo('[run_audio_management_queue]: operating on '+str(current_file.path))
         vad_resp:VadOnFileResponse = self.run_vad_on_file(VadOnFileRequest(current_file.metadata, current_file.path))
         if vad_resp.marks.SPEECH in vad_resp.marks.types:
             # if there's speech in here: let's deal with it
-            rospy.logdebug('got speech, now processing')
+            rospy.loginfo('[run_audio_management_queue]: speech detected.')
 
             # threading util setup
             asr_resp = AsrOnFileResponse()
@@ -79,7 +99,7 @@ class BioAsrCore:
 
             self.pub_parsed_utterances.publish(utt)
         else:
-            rospy.logdebug('got no speech, not publishing any utterance')
+            rospy.loginfo('[run_audio_management_queue]: no speech detected')
 
 def main():
     rospy.init_node("BioAsrCore", anonymous=False)
