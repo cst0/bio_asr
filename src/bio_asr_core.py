@@ -63,27 +63,31 @@ class BioAsrCore:
             return
 
         current_file = self.audio_management_queue.pop(0)
-        rospy.loginfo('[run_audio_management_queue]: operating on '+str(current_file.path))
+        rospy.logdebug('[run_audio_management_queue]: operating on '+str(current_file.path))
         vad_resp:VadOnFileResponse = self.run_vad_on_file(VadOnFileRequest(current_file.metadata, current_file.path))
         if vad_resp.marks.SPEECH in vad_resp.marks.results:
             # if there's speech in here: let's deal with it
             rospy.logdebug('[run_audio_management_queue]: speech detected.')
 
             # threading util setup
-            asr_resp = AsrOnFileResponse()
+            asr_req = AsrOnFileRequest()
+            asr_req.metadata = current_file.metadata
+            asr_req.file_path = current_file.path
+            asr_resp:AsrOnFileResponse = self.run_asr_on_file(asr_req)
+            rospy.loginfo('got an utterance! "'+str(asr_resp.utt.utt)+'"')
+
             recog_resp = SpeakerRecognitionOnFileResponse()
-            def call_asr(current_file, resp):
-                resp = self.run_asr_on_file(AsrOnFileRequest(current_file.metadata, current_file.path))
-            def call_recog(current_file, resp):
-                resp = self.run_recog_on_file(SpeakerRecognitionOnFileRequest(current_file.metadata, current_file.path))
+            recog_req = SpeakerRecognitionOnFileRequest()
+            recog_resp = SpeakerRecognitionOnFileResponse()
+            recog_resp = self.run_recog_on_file(recog_req)
 
             # threading calls to get data
-            p_asr = Process(target=call_asr, args=(current_file,asr_resp,))
-            p_recog = Process(target=call_recog, args=(current_file,recog_resp,))
-            p_asr.start()
-            p_recog.start()
-            p_asr.join()
-            p_recog.join()
+            #p_asr = Process(target=call_asr, args=(current_file,asr_resp,))
+            #p_recog = Process(target=call_recog, args=(current_file,recog_resp,))
+            #p_asr.start()
+            #p_recog.start()
+            #p_asr.join()
+            #p_recog.join()
 
             # given responses, create and publish utterance
             utt = Utterance()
