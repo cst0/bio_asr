@@ -59,15 +59,15 @@ class BioAsrCore:
         del event
         if len(self.audio_management_queue) == 0:
             # nice, the queue's been cleaned out!
-            rospy.loginfo('[run_audio_management_queue]: queue empty')
+            rospy.logdebug('[run_audio_management_queue]: queue empty')
             return
 
-        current_file = self.audio_management_queue[0]
+        current_file = self.audio_management_queue.pop(0)
         rospy.loginfo('[run_audio_management_queue]: operating on '+str(current_file.path))
         vad_resp:VadOnFileResponse = self.run_vad_on_file(VadOnFileRequest(current_file.metadata, current_file.path))
-        if vad_resp.marks.SPEECH in vad_resp.marks.types:
+        if vad_resp.marks.SPEECH in vad_resp.marks.results:
             # if there's speech in here: let's deal with it
-            rospy.loginfo('[run_audio_management_queue]: speech detected.')
+            rospy.logdebug('[run_audio_management_queue]: speech detected.')
 
             # threading util setup
             asr_resp = AsrOnFileResponse()
@@ -99,7 +99,7 @@ class BioAsrCore:
 
             self.pub_parsed_utterances.publish(utt)
         else:
-            rospy.loginfo('[run_audio_management_queue]: no speech detected')
+            rospy.logdebug('[run_audio_management_queue]: no speech detected')
 
 def main():
     rospy.init_node("BioAsrCore", anonymous=False)
