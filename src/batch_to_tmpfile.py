@@ -4,17 +4,13 @@ import rospy
 import rospkg
 import os
 import tempfile
-from bio_asr.msg import AudioBatch, NotifyFileUsage
+from bio_asr.msg import AudioBatch, AudioFileNotification
 from pydub import AudioSegment
-from typing import List, Union
 
 
 class BatchToTempfile:
     def __init__(self, delete_timeout=60):
         self.delete_timeout = delete_timeout
-        self.pub_file_use = rospy.Publisher(
-            "audio_file_updates", NotifyFileUsage, queue_size=1
-        )
 
         rp = rospkg.RosPack()
         path = rp.get_path("bio_asr")
@@ -31,9 +27,13 @@ class BatchToTempfile:
         self.sub_audio_batch = rospy.Subscriber(
             "audio_batched", AudioBatch, self.handle_audio_batch, queue_size=10
         )
+        audio_file_use_topic = "audio_file_updates"
+        self.pub_file_use = rospy.Publisher(
+            audio_file_use_topic, AudioFileNotification, queue_size=1
+        )
         self.sub_file_use = rospy.Subscriber(
-            "audio_file_locks",
-            NotifyFileUsage,
+            audio_file_use_topic,
+            AudioFileNotification,
             self.handle_file_usage,
             queue_size=10,
         )
@@ -60,12 +60,12 @@ class BatchToTempfile:
         self.file_times.append(rospy.Time.now())
         self.file_user.append([])
 
-        nfu = NotifyFileUsage()
+        nfu = AudioFileNotification()
         nfu.path = tmp.name
         nfu.action = nfu.ACTION_AVAILABLE
         self.pub_file_use.publish(nfu)
 
-    def handle_file_usage(self, fileuse: NotifyFileUsage):
+    def handle_file_usage(self, fileuse: AudioFileNotification):
         if fileuse.path in self.files_list:
             index = self.files_strs.index(fileuse.path)
             if fileuse.action == fileuse.ACTION_USING:
@@ -98,6 +98,7 @@ class BatchToTempfile:
             del self.files_strs[d]
             del self.file_times[d]
             del self.file_user[d]
+
 
 def main():
     rospy.init_node("audiobatch_to_tempfile", anonymous=False)
