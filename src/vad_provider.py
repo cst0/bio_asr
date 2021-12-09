@@ -23,8 +23,13 @@ class VadProvider:
             savedir=os.path.join(model_dir,"vad-crdnn-libriparty")
         )
 
-        rospy.Service("vad_on_file", VadOnFile, self.provide_asr_on_file)
+        rospy.Service("run_vad_on_file", VadOnFile, self.provide_asr_on_file)
         rospy.loginfo('ready')
+
+        audio_file_use_topic = "audio_file_updates"
+        self.pub_file_use = rospy.Publisher(
+            audio_file_use_topic, AudioFileNotification, queue_size=1
+        )
 
     def provide_asr_on_file(self, req: VadOnFileRequest):
         assert type(req.file_path) is str

@@ -183,6 +183,7 @@ catkin_install_python(PROGRAMS
   src/batch_to_tmpfile.py
   src/bio_asr_core.py
   src/speaker_identifier.py
+  src/vad_provider.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

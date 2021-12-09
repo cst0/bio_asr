@@ -1,5 +1,7 @@
 <launch>
     <include file="$(find audio_capture)/launch/capture.launch" />
+    <node pkg="bio_asr" type="bio_asr_core.py" name="bio_asr_core" ns='audio' output='screen'/>
+
     <node pkg="bio_asr" type="audio_batcher.py" name="audio_batcher" ns='audio'/>
     <node pkg="bio_asr" type="batch_to_tmpfile.py" name="batch_writer" ns='audio'/>
     <node pkg="bio_asr" type="vad_provider.py" name="vad_provider" ns='audio'/>

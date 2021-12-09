@@ -24,7 +24,12 @@ class AsrProvider:
             savedir=os.path.join(model_dir, "asr-crdnn-rnnlm-librispeech"),
         )
 
-        rospy.Service("asr_on_file", AsrOnFile, self.provide_asr_on_file)
+        audio_file_use_topic = "audio_file_updates"
+        self.pub_file_use = rospy.Publisher(
+            audio_file_use_topic, AudioFileNotification, queue_size=1
+        )
+
+        rospy.Service("run_asr_on_file", AsrOnFile, self.provide_asr_on_file)
         rospy.loginfo('ready')
 
     def provide_asr_on_file(self, req: AsrOnFileRequest):

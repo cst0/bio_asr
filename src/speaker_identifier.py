@@ -4,6 +4,7 @@ import rospy
 import tempfile
 from std_srvs.srv import Empty, EmptyResponse
 from bio_asr.srv import SpeakerRecognitionOnFile, SpeakerRecognitionOnFileRequest, SpeakerRecognitionOnFileResponse
+from bio_asr.msg import AudioFileNotification
 
 import torchaudio
 from speechbrain.pretrained import EncoderClassifier
@@ -25,6 +26,11 @@ class SpeakerIdentifier(object):
         self.verification = SpeakerRecognition.from_hparams(
             source="speechbrain/spkrec-ecapa-voxceleb",
             savedir="pretrained_models/spkrec-ecapa-voxceleb",
+        )
+
+        audio_file_use_topic = "audio_file_updates"
+        self.pub_file_use = rospy.Publisher(
+            audio_file_use_topic, AudioFileNotification, queue_size=1
         )
 
     def analyze_utterance(self, req:SpeakerRecognitionOnFileRequest):
