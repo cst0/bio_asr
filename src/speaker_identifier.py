@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 import rospy
-import tempfile
-from std_srvs.srv import Empty, EmptyResponse
+import rospkg
+import os
 from bio_asr.srv import SpeakerRecognitionOnFile, SpeakerRecognitionOnFileRequest, SpeakerRecognitionOnFileResponse
 from bio_asr.msg import AudioFileNotification
 
@@ -20,12 +20,20 @@ class SpeakerIdentifier(object):
         self.current_utterance = []
         self.audio_info = None
 
+        rp = rospkg.RosPack()
+        path = rp.get_path("bio_asr")
+        self.data_dir = os.path.join(path, "data")
+        model_dir = os.path.join(path, "pretrained_models")
+
+        # transcription clutters symlinks everywhere if we aren't in this dir
+        os.chdir(self.data_dir)
+
         self.classifier = EncoderClassifier.from_hparams(
             source="speechbrain/spkrec-ecapa-voxceleb"
         )
         self.verification = SpeakerRecognition.from_hparams(
             source="speechbrain/spkrec-ecapa-voxceleb",
-            savedir="pretrained_models/spkrec-ecapa-voxceleb",
+            savedir=os.path.join(model_dir, "spkrec-ecapa-voxceleb"),
         )
 
         audio_file_use_topic = "audio_file_updates"
@@ -35,9 +43,10 @@ class SpeakerIdentifier(object):
 
     def analyze_utterance(self, req:SpeakerRecognitionOnFileRequest):
         assert type(req.file) is str
+        print('dealing with '+str(req.file))
         score, prediction = self.verification.verify_files(
             req.file,
-            "/home/cst/ws_releases/src/bio_asr/data/afterapplepicking.mp3"
+            os.path.join(self.data_dir, 'chris.mp3')
         )
 
         resp = SpeakerRecognitionOnFileResponse()

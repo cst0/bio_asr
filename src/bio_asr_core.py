@@ -75,19 +75,12 @@ class BioAsrCore:
             asr_req.file_path = current_file.path
             asr_resp:AsrOnFileResponse = self.run_asr_on_file(asr_req)
             rospy.loginfo('got an utterance! "'+str(asr_resp.utt.utt)+'"')
+            found_utt = str(asr_resp.utt.utt)
 
-            recog_resp = SpeakerRecognitionOnFileResponse()
             recog_req = SpeakerRecognitionOnFileRequest()
-            recog_resp = SpeakerRecognitionOnFileResponse()
-            recog_resp = self.run_recog_on_file(recog_req)
-
-            # threading calls to get data
-            #p_asr = Process(target=call_asr, args=(current_file,asr_resp,))
-            #p_recog = Process(target=call_recog, args=(current_file,recog_resp,))
-            #p_asr.start()
-            #p_recog.start()
-            #p_asr.join()
-            #p_recog.join()
+            recog_req.metadata = current_file.metadata
+            recog_req.file = current_file.path
+            recog_resp:SpeakerRecognitionOnFileResponse = self.run_recog_on_file(recog_req)
 
             # given responses, create and publish utterance
             utt = Utterance()
@@ -99,7 +92,7 @@ class BioAsrCore:
             if utt.known_agent:
                 utt.agent = recog_resp.agent
 
-            utt.utt = asr_resp.utt
+            utt.utt = found_utt
 
             self.pub_parsed_utterances.publish(utt)
         else:
