@@ -1,0 +1,5 @@
+string append_this
+bool new_file
+---
+string appended_file
+
