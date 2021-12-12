@@ -1,0 +1,3 @@
+<launch>
+    <node pkg="bio_asr" type="vad_provider.py" name="vad_provider" ns='audio' output='screen' />
+</launch>
