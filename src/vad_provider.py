@@ -3,6 +3,7 @@
 import rospy
 import rospkg
 import os
+from torch import Tensor
 from bio_asr.srv import VadOnFile, VadOnFileRequest, VadOnFileResponse
 from bio_asr.msg import AudioFileNotification
 from rospy.rostime import Time
@@ -34,13 +35,15 @@ class VadProvider:
     def provide_asr_on_file(self, req: VadOnFileRequest):
         assert type(req.file_path) is str
         rospy.logdebug('[provide_asr_on_file]: performing vad on ' + str(req.file_path))
-        boundaries = self.vad_model.get_speech_segments(req.file_path)
+        boundaries:Tensor = self.vad_model.get_speech_segments(req.file_path)
         resp = VadOnFileResponse()
-        if len(boundaries) > 0:
-            rospy.logdebug(str(boundaries)+" is worth parsing")
+        if len(boundaries) <= 0:
+            resp.marks.results = [resp.marks.NON_SPEECH]
+            resp.marks.timesteps = [Time(0)]
+        if len(boundaries) == 1:
             resp.marks.results = [resp.marks.SPEECH]
-        else:
-            rospy.logdebug(str(boundaries)+" is not worth parsing")
+            resp.marks.timesteps = [Time(0)]
+
         return resp
 
 
