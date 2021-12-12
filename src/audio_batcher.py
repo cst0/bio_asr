@@ -6,7 +6,7 @@ from bio_asr.msg import AudioBatch
 
 
 class AudioBatcher(object):
-    def __init__(self, hz=4, batchtime=3.0, overlap=1):
+    def __init__(self, hz=30, batchtime=2.5, overlap=0.1):
         if not overlap < batchtime:
             rospy.logerr("overlap must be less than batch time! Setting overlap to 0.")
         if batchtime < 0:
@@ -50,11 +50,14 @@ class AudioBatcher(object):
 
             # Strip the appropriate amount of data to make sure that we're
             # keeping some overlap in the next message.
-            data_length = len(self.batch_data.data)
-            strip_index = int(
-                (self.overlap.to_sec() / self.batchtime.to_sec()) * data_length
-            )
-            self.batch_data.data = self.batch_data.data[-strip_index:]
+            if self.overlap.to_sec() == 0:
+                self.batch_data.data = []
+            else:
+                data_length = len(self.batch_data.data)
+                strip_index = int(
+                    (self.overlap.to_sec() / self.batchtime.to_sec()) * data_length
+                )
+                self.batch_data.data = self.batch_data.data[-strip_index:]
             self.batch_start = now
 
     def handle_audio_msg(self, msg: AudioData):
