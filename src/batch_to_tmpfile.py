@@ -5,6 +5,7 @@ import rospkg
 import os
 import tempfile
 from bio_asr.msg import AudioBatch, AudioFileNotification
+from bio_asr.srv import AppendAudioFile, AppendAudioFileRequest, AppendAudioFileResponse
 from pydub import AudioSegment
 
 
@@ -19,11 +20,15 @@ class BatchToTempfile:
         self.empty_mp3 = AudioSegment.from_mp3(os.path.join(helpers_dir, "silent.mp3"))
         self.empty_wav = AudioSegment.from_mp3(os.path.join(helpers_dir, "silent.wav"))
 
+        self.temp_append_file = tempfile.NamedTemporaryFile("r+", suffix=".mp3")
+        self.temp_append_recording = AudioSegment.empty()
+
         self.files_list = []
         self.files_strs = []
         self.file_times = []
         self.file_user = []
 
+        self.audio_file_append = rospy.Service('audio_appender', AppendAudioFile, self.handle_audio_append)
         self.sub_audio_batch = rospy.Subscriber(
             "audio_batched", AudioBatch, self.handle_audio_batch, queue_size=10
         )
@@ -99,6 +104,32 @@ class BatchToTempfile:
             del self.file_times[d]
             del self.file_user[d]
 
+    def handle_audio_append(self, appendrequest:AppendAudioFileRequest):
+        rospy.loginfo('appending to file: '+str(appendrequest.append_this))
+        assert type(self.temp_append_recording) is AudioSegment
+        append = AudioSegment.from_mp3(appendrequest.append_this)
+
+        if appendrequest.new_file:
+            rospy.loginfo('appending as new file')
+            # if we're making a new file, drop the current one into the delete queue
+            self.files_list.append(self.temp_append_file)
+            self.files_strs.append(self.temp_append_file.name)
+            self.file_times.append(rospy.Time.now())
+            self.file_user.append([])
+
+            self.temp_append_file = tempfile.NamedTemporaryFile("r+", suffix=".mp3")
+            self.temp_append_recording = AudioSegment.empty()
+
+        self.temp_append_recording += append
+
+        assert type(self.temp_append_recording) is AudioSegment
+        self.temp_append_recording.export(self.temp_append_file.name, format="mp3")
+
+        resp = AppendAudioFileResponse()
+        resp.appended_file = self.temp_append_file.name
+        rospy.loginfo('appended to '+str(resp.appended_file))
+
+        return resp
 
 def main():
     rospy.init_node("audiobatch_to_tempfile", anonymous=False)
