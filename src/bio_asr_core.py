@@ -10,6 +10,9 @@ from bio_asr.srv import (
 from bio_asr.srv import AppendAudioFileRequest, AppendAudioFileResponse, AppendAudioFile
 from bio_asr.srv import AsrOnFileRequest, AsrOnFileResponse, AsrOnFile
 from bio_asr.srv import VadOnFileRequest, VadOnFileResponse, VadOnFile
+from bio_asr.srv import AddKnownAgent, AddKnownAgentRequest, AddKnownAgentResponse
+from bio_asr.srv import GetKnownAgents, GetKnownAgentsRequest, GetKnownAgentsResponse
+from bio_asr.srv import SaveKnownAgents, SaveKnownAgentsRequest, SaveKnownAgentsResponse
 from rospy.rostime import Duration
 
 
@@ -21,15 +24,22 @@ class BioAsrCore:
         self.last_processed_audio:AppendAudioFileResponse = self.current_appended_audio
         self.file_to_process = False
 
-        self.run_vad_on_file = rospy.ServiceProxy("run_vad_on_file", VadOnFile)
-        self.run_asr_on_file = rospy.ServiceProxy("run_asr_on_file", AsrOnFile)
-        self.run_audio_appender = rospy.ServiceProxy("audio_appender", AppendAudioFile)
-        self.run_recog_on_file = rospy.ServiceProxy(
-            "run_recog_on_file", SpeakerRecognitionOnFile
-        )
+        #fmt: off
+        self.run_vad_on_file    = rospy.ServiceProxy("run_vad_on_file",   VadOnFile)
+        self.run_asr_on_file    = rospy.ServiceProxy("run_asr_on_file",   AsrOnFile)
+        self.run_audio_appender = rospy.ServiceProxy("audio_appender",    AppendAudioFile)
+        self.run_recog_on_file  = rospy.ServiceProxy("run_recog_on_file", SpeakerRecognitionOnFile)
+        self.add_known_agent    = rospy.ServiceProxy('add_known_agent',   AddKnownAgent)
+        self.get_known_agents   = rospy.ServiceProxy('get_known_agents',  GetKnownAgents)
+        self.save_known_agents  = rospy.ServiceProxy('save_known_agents', SaveKnownAgents)
+        #fmt: on
 
         rospy.loginfo("Waiting for VAD service to connect...")
         self.run_vad_on_file.wait_for_service()
+        rospy.loginfo("Got it! Waiting for agent management services to connect...")
+        self.add_known_agent.wait_for_service()
+        self.get_known_agents.wait_for_service()
+        self.save_known_agents.wait_for_service()
         rospy.loginfo("Got it! Waiting for ASR service to connect...")
         self.run_asr_on_file.wait_for_service()
         rospy.loginfo("Got it! Waiting for recognition service to connect...")
