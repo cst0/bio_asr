@@ -14,16 +14,16 @@ from bio_asr.srv import SaveKnownAgents, SaveKnownAgentsRequest, SaveKnownAgents
 
 class VoiceAgentMaintainer:
     def __init__(self, hz=1):
-        rospy.Service('add_known_agent', AddKnownAgent, self.handle_add_known_agent)
-        rospy.Service('get_known_agents', GetKnownAgents, self.handle_get_known_agents)
+        rospy.Service('add_known_agent',   AddKnownAgent,   self.handle_add_known_agent)
+        rospy.Service('get_known_agents',  GetKnownAgents,  self.handle_get_known_agents)
         rospy.Service('save_known_agents', SaveKnownAgents, self.handle_save_known_agents)
+        self.known_agent_references = {}
 
         rp = rospkg.RosPack()
         path = rp.get_path("bio_asr")
         self.unk_count = 0
         self.comparison_dir = os.path.join(path, "data", "known_agents")
 
-        self.known_agent_references:Dict
         self.populate_known_agent_references()
 
     def handle_add_known_agent(self, req:AddKnownAgentRequest):
@@ -59,11 +59,10 @@ class VoiceAgentMaintainer:
         del req
         resp = GetKnownAgentsResponse()
         keys = self.known_agent_references.keys()
-        vals = self.known_agent_references.keys()
-        assert type(keys) is List[str]
-        assert type(vals) is List[str]
-        resp.agent_names = keys
-        resp.comparison_file_paths = vals
+        vals = self.known_agent_references.values()
+
+        resp.agent_names = list(keys)
+        resp.comparison_file_paths = list(vals)
 
         return resp
 
@@ -73,12 +72,15 @@ class VoiceAgentMaintainer:
         return resp
 
     def populate_known_agent_references(self):
-        (dirpath, _, filenames) = os.walk(self.comparison_dir)
-        for f in filenames:
-            assert type(f) is str
-            # xyz_1.mp3 -> xyz
-            name = ''.join(f.replace('_','').split('.')[:-1])
-            self.known_agent_references[name] = os.path.join(dirpath, f) #type:ignore
+        dir_out = os.listdir(self.comparison_dir)
+        for out in dir_out:
+            print(out)
+            if out.endswith('.mp3'):
+                assert type(out) is str
+                # xyz_1.mp3 -> xyz
+                name = ''.join(out.replace('_','').split('.')[:-1])
+                self.known_agent_references[name] = os.path.join(self.comparison_dir, out)
+        print(self.known_agent_references)
 
 def main():
     rospy.init_node('voice_agent_maintainer')
