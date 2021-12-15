@@ -1,0 +1,6 @@
+bool identity_known
+bool replace_data_if_conflict
+string agent_name
+string comparison_file_path
+---
+bool success

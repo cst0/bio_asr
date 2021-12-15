@@ -69,8 +69,11 @@ add_message_files(
 # Generate services in the 'srv' folder
 add_service_files(
   FILES
+  AddKnownAgent.srv
   AppendAudioFile.srv
   AsrOnFile.srv
+  GetKnownAgents.srv
+  SaveKnownAgents.srv
   SpeakerRecognitionOnFile.srv
   VadOnFile.srv
 )
