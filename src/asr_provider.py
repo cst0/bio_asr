@@ -17,7 +17,6 @@ class AsrProvider:
         model_dir = os.path.join(path, "pretrained_models")
 
         # transcription clutters symlinks everywhere if we aren't in this dir
-        os.chdir(data_dir)
 
         self.asr_model = EncoderDecoderASR.from_hparams(
             source="speechbrain/asr-crdnn-rnnlm-librispeech",
@@ -29,6 +28,7 @@ class AsrProvider:
             audio_file_use_topic, AudioFileNotification, queue_size=1
         )
 
+        os.chdir('/tmp')
         rospy.Service("run_asr_on_file", AsrOnFile, self.provide_asr_on_file)
         rospy.loginfo('ready')
 
