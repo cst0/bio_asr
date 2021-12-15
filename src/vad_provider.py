@@ -17,8 +17,6 @@ class VadProvider:
         data_dir = os.path.join(path, "data")
         model_dir = os.path.join(path, "pretrained_models")
 
-        # transcription clutters symlinks everywhere if we aren't in this dir
-        os.chdir(data_dir)
         self.vad_model = VAD.from_hparams(
             source="speechbrain/vad-crdnn-libriparty",
             savedir=os.path.join(model_dir, "vad-crdnn-libriparty"),
@@ -31,6 +29,8 @@ class VadProvider:
         self.pub_file_use = rospy.Publisher(
             audio_file_use_topic, AudioFileNotification, queue_size=1
         )
+        # transcription clutters symlinks everywhere if we aren't in this dir
+        os.chdir('/tmp')
 
     def provide_asr_on_file(self, req: VadOnFileRequest):
         assert type(req.file_path) is str
