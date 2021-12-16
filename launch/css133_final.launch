@@ -1,0 +1,19 @@
+<launch>
+    <!-- provides dependent functionality: capturing raw audio and providing tts. -->
+    <include file="$(find audio_capture)/launch/capture.launch" />
+    <include file="$(find simple_tts)/launch/simple_tts.launch" ns='audio' />
+
+    <!-- bio_asr functionality: core manager/state machine. -->
+    <node pkg="bio_asr" type="bio_asr_core.py" name="bio_asr_core" ns='audio' output='screen' />
+
+    <!-- bio_asr functionality: ASR, Batching, VAD, speaker identification, etc. -->
+    <node pkg="bio_asr" type="asr_provider.py"           name="asr_provider"           ns='audio'/>
+    <node pkg="bio_asr" type="audio_batcher.py"          name="audio_batcher"          ns='audio' />
+    <node pkg="bio_asr" type="batch_to_tmpfile.py"       name="batch_writer"           ns='audio' />
+    <node pkg="bio_asr" type="speaker_identifier.py"     name="speaker_identifier"     ns='audio' />
+    <node pkg="bio_asr" type="vad_provider.py"           name="vad_provider"           ns='audio' />
+    <node pkg="bio_asr" type="voice_agent_maintainer.py" name="voice_agent_maintainer" ns='audio' />
+
+    <!-- demo functionality: take bio_asr output and turn it into behaviors. -->
+    <node pkg="bio_asr" type="utterance_to_actions.py" name="utterance_to_actions" ns='audio' output='screen' />
+</launch>
